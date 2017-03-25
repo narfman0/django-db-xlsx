@@ -4,11 +4,40 @@ from django.http import HttpResponse
 
 from openpyxl import Workbook
 
-from core.util import get_model_export_headers, get_model_export_row
+
+def get_model_export_headers(model):
+    """ Get header names, friendly for exporting data to csv/xlsx """
+    for field in model._meta.get_fields():
+        if 'ManyToManyRel' != field.__class__.__name__ and 'ManyToOneRel' != field.__class__.__name__:
+            yield field.name
 
 
-def load_models(wb, target_models=settings.DJANGO_DB_XLSX_MODELS):
+def get_model_export_row(model, obj, many_to_many_delimeter=' '):
+    """ Get a single model objects row data for export """
+    for field in model._meta.get_fields():
+        if 'ManyToManyRel' == field.__class__.__name__:
+            continue
+        if 'ManyToOneRel' == field.__class__.__name__:
+            continue
+        if 'ManyToManyField' == field.__class__.__name__:
+            pks = [str(i.pk) for i in getattr(obj, field.name).all()]
+            yield many_to_many_delimeter.join(pks)
+        else:
+            attribute = getattr(obj, field.name)
+            if attribute is None:
+                yield None
+            elif isinstance(attribute, numbers.Number):
+                yield attribute
+            elif hasattr(attribute, 'pk'):
+                yield attribute.pk
+            else:
+                yield smart_str(attribute)
+
+
+def load_models(wb, target_models=None):
     """ Update all ourdesign models with data in the workbook """
+    if target_models is None:
+        target_models = settings.DJANGO_DB_XLSX_MODELS
     for app_label, model_name in target_models:
         model = apps.get_model(app_label, model_name)
         ws = wb.get_sheet_by_name(name=model_name)
@@ -51,8 +80,10 @@ def load_models(wb, target_models=settings.DJANGO_DB_XLSX_MODELS):
                   model_name + ' ' + str(model_pk))
 
 
-def dump_models(target_models=settings.DJANGO_DB_XLSX_MODELS, path=None, wb=None):
+def dump_models(target_models=None, path=None, wb=None):
     """ Dump models to excel response or file path if given """
+    if target_models is None:
+        target_models = settings.DJANGO_DB_XLSX_MODELS
     if not wb:
         wb = Workbook()
     ws1 = wb.active
