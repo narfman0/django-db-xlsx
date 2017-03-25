@@ -1,0 +1,3 @@
+include LICENSE
+include README.rst
+recursive-include django_db_xlsx *.html *.png *.gif *js *.css *jpg *jpeg *svg *py
