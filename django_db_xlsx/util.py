@@ -1,6 +1,9 @@
+import numbers
+
 from django.apps import apps
 from django.conf import settings
 from django.http import HttpResponse
+from django.utils.encoding import smart_str
 
 from openpyxl import Workbook
 
@@ -58,9 +61,12 @@ def load_models(wb, target_models=None):
                     # update value in kwargs to expected field type
                     field = model._meta.get_field(header)
                     if field.__class__.__name__ == 'ManyToManyField':
-                        ids = [int(model_id) for model_id in kwargs[header].split(',')]
-                        objects = field.related_model.objects.filter(id__in=ids)
-                        post_process_m2m[header] = objects
+                        try:
+                            ids = [int(model_id) for model_id in kwargs[header].split(',')]
+                            objects = field.related_model.objects.filter(id__in=ids)
+                            post_process_m2m[header] = objects
+                        except ValueError:
+                            print('ValueError, m2m object likely empty: {}'.format(header))
                         del kwargs[header]
                     elif field.__class__.__name__ == 'ForeignKey':
                         field_pk = kwargs[header]
