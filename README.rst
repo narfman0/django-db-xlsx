@@ -30,8 +30,8 @@ Invoke import (note: can import exported file)::
 
 Optional setting for default models saved::
 
-    DEFAULT_DJANGO_DB_XLSX_MODELS = [
-        ('myapp', 'mymodel'),
+    DJANGO_DB_XLSX_MODELS = [
+        ('auth', 'User'),
     ]
 
 Features
