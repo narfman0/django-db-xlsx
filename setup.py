@@ -15,7 +15,7 @@ setup(
     long_description=readme,
     author='Jon Robison',
     author_email='narfman0@gmail.com',
-    url='https://github.com/narfman0/django-db-xlsl',
+    url='https://github.com/narfman0/django-db-xlsx',
     packages=[
         'django_db_xlsx',
     ],
